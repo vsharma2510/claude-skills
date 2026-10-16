@@ -105,6 +105,12 @@ When plots follow a flow, split the text into one note per plot and place each n
 
 Render every slide and check: title and rule at the same position on every content slide; no overflow in mono columns; no value, ±, or unit split across lines; references sit under their figure and not in the footer; every measured value has an uncertainty; plot labels readable; direct key does not cover data; flowchart labels fit their boxes; footer has name and date left, number right; no leftover placeholder text unless the user was told it is a placeholder.
 
+## Running in Claude Code or on a local machine
+
+- Needs Node and `npm install pptxgenjs` (it brings `jszip`). Python is only needed for the optional checks below.
+- `apply_theme.js` and the `/mnt/skills/public/pptx/...` scripts exist only in the claude.ai sandbox. Outside it the script still builds the deck; theme colors then stay at Office defaults, which does not change how the slides look.
+- Check the result by rendering: `soffice --headless --convert-to pdf out.pptx` then `pdftoppm -jpeg -r 110 out.pdf slide`, and look at every image. Use the pptx skill's `validate.py` when it is available.
+
 ## Reference implementation
 
 Tested script that builds a five-slide sample (title, divider, text plus table, flowchart, text plus plots). Copy it, then replace the content of each slide and delete slides you do not need. Run with `node build_deck.js out.pptx`, then `python3 /mnt/skills/public/pptx/scripts/office/validate.py out.pptx`.
@@ -114,7 +120,9 @@ Tested script that builds a five-slide sample (title, divider, text plus table, 
 const pptxgen = require("pptxgenjs");
 const fs = require("fs");
 const JSZip = require(require.resolve("jszip", { paths: [require.resolve("pptxgenjs")] }));
-const { applyTheme } = require("/mnt/skills/public/pptx/scripts/apply_theme.js");
+// apply_theme.js ships with the claude.ai pptx skill; elsewhere the deck still builds, only the theme colors stay at Office defaults
+let applyTheme = async () => console.warn("apply_theme.js not found: theme colors left at Office defaults");
+try { ({ applyTheme } = require("/mnt/skills/public/pptx/scripts/apply_theme.js")); } catch (e) {}
 
 // ---------- tokens ----------
 const T = {
