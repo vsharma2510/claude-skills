@@ -100,9 +100,9 @@ MONO_FONTS = ["Consolas", "Inconsolata", "DejaVu Sans Mono"]
 
 # fig = inches; title/label/tick/note = pt; lw = data line width; ms = marker size; frame/grid = line widths; tickl/pad in pt
 CONTEXTS = {
-    "slide": dict(fig=(6.2, 3.3), title=15, label=13, tick=12, note=12, lw=2.6, ms=6.5, frame=1.4, grid=0.9, tickl=6, pad=7, dpi=200, bg=COLORS["bg"]),
-    "paper": dict(fig=(3.4, 2.6), title=9, label=8, tick=7, note=7, lw=1.2, ms=3.6, frame=0.8, grid=0.5, tickl=3.5, pad=3, dpi=300, bg="#FFFFFF"),
-    "wide": dict(fig=(7.0, 2.8), title=9, label=8, tick=7, note=7, lw=1.2, ms=3.6, frame=0.8, grid=0.5, tickl=3.5, pad=3, dpi=300, bg="#FFFFFF"),
+    "slide": dict(fig=(6.2, 3.3), title=15, label=13, tick=12, note=12, lw=1.8, ms=6.5, frame=1.4, grid=0.9, tickl=6, pad=7, dpi=200, bg=COLORS["bg"]),
+    "paper": dict(fig=(3.4, 2.6), title=9, label=8, tick=7, note=7, lw=0.85, ms=3.6, frame=0.8, grid=0.5, tickl=3.5, pad=3, dpi=300, bg="#FFFFFF"),
+    "wide": dict(fig=(7.0, 2.8), title=9, label=8, tick=7, note=7, lw=0.85, ms=3.6, frame=0.8, grid=0.5, tickl=3.5, pad=3, dpi=300, bg="#FFFFFF"),
 }
 _state = {"name": "slide", "c": CONTEXTS["slide"]}
 

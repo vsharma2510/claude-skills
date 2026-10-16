@@ -61,7 +61,7 @@ Booktabs style: ink rule 1.5 pt above the header and below the last row, 1 pt in
 - Titles centered, bold, 13 pt. Axis titles and tick labels large enough to read from the back of a room (12 and 11 pt minimum).
 - Set the plot area explicitly with `layout: { x: 0.115, y: 0.2, w: 0.865, h: 0.5 }` so the chart does not collapse around its labels. Plots take as much of the slide as possible.
 - Label series directly with a small key inside the plot (line swatch plus word), never a legend beside the plot.
-- A second series differs in line style as well as color (dashed fit over solid data).
+- Data lines 2 pt (the key swatches 1.75 pt), matching the 1.8 pt lines of personal-plot-style slide images. A second series differs in line style as well as color (dashed fit over solid data).
 - pptxgenjs applies one dash style to all series. Do not pass `lineDash` as an array; set per-series dashes by editing the chart XML after writing (the script does this).
 - Label every histogram bin sparsely using space strings for hidden labels; `catAxisLabelFrequency` is not honored everywhere.
 
@@ -300,14 +300,14 @@ function bullets(slide, items, o) {
     { name: "data", values: pts.map((p) => p[1]) },
     { name: "fit", values: xs.map((x) => 1.5 + 7.75 * x) },
   ], Object.assign({}, axisCommon, {
-    x: colX, y: rowY[0], w: colW, h: figH, chartColors: [T.teal, T.coral], lineSize: 3, lineDataSymbol: "none",
+    x: colX, y: rowY[0], w: colW, h: figH, chartColors: [T.teal, T.coral], lineSize: 2, lineDataSymbol: "none",
     title: "Track frequency", catAxisTitle: "t (ms)", valAxisTitle: "f − f0 (MHz)",
     catAxisMinVal: 0, catAxisMaxVal: 2, catAxisMajorUnit: 0.5, valAxisMinVal: 0, valAxisMaxVal: 20, valAxisMajorUnit: 5,
   }));
   // direct key inside the plot
   const kx = colX + 0.115 * colW + 0.12, ky = rowY[0] + 0.2 * figH + 0.06;
   [["data", T.teal, "solid", 0], ["fit", T.coral, "dash", 1]].forEach(([n, c, d, i]) => {
-    s.addShape(pres.shapes.LINE, { x: kx, y: ky + 0.1 + i * 0.2, w: 0.3, h: 0, line: { color: c, width: 2.5, dashType: d } });
+    s.addShape(pres.shapes.LINE, { x: kx, y: ky + 0.1 + i * 0.2, w: 0.3, h: 0, line: { color: c, width: 1.75, dashType: d } });
     txt(s, n, { x: kx + 0.38, y: ky + i * 0.2, w: 0.6, h: 0.2, fontFace: F.mono, fontSize: 11, valign: "middle" });
   });
   ref(s, ["[1] Placeholder simulation, 2026"], colX, rowY[0] + figH + 0.02, colW);
