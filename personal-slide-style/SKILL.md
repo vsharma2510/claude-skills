@@ -1,15 +1,34 @@
 ---
 name: personal-slide-style
-description: Vivek's personal slide design system for physics talks. Use whenever the user asks for slides, a deck, a talk, a presentation or a poster-style summary, even if they never name a style or a format. Produces a .pptx with a quiet technical look (off-white ground, dark green title rule, Calibri text, Consolas numbers, boxed plots, booktabs-style tables, unoutlined grey flowchart boxes) and strict language rules for titles, bullets, numbers and references. Use it for every new deck, and also when restyling or extending a deck that already follows this style. Do not fall back to a generic Claude slide look, and do not substitute an artifact or another skill's default styling.
+description: Vivek's personal slide design system for physics talks. Use whenever the user asks for slides, a deck, a talk, a presentation or a poster-style summary, even if they never name a style or a format. Builds and revises the deck as a claude.ai Slides artifact (when the Artifact tool offers the Slides type), which the user downloads as .pptx and polishes in PowerPoint last; otherwise a .pptx built directly. Quiet technical look (off-white ground, dark green title rule, Calibri text, Consolas numbers, boxed plots, booktabs-style tables, unoutlined grey flowchart boxes) and strict language rules for titles, bullets, numbers and references. Use it for every new deck, and also when restyling or extending a deck that already follows this style. Do not fall back to a generic Claude slide look or another skill's default styling.
 ---
 
 # Personal slide style
 
 This skill replaces generic slide design. The look and the language rules below come from decisions the user made one at a time, so follow them exactly and do not "improve" them. Where this skill conflicts with the generic advice in the pptx skill (for example its ban on accent lines under titles), this skill wins, because the user chose these things explicitly.
 
-## Output and process
+## Workflow: artifact first, PowerPoint last
 
-1. Output is always a `.pptx`, built with `pptxgenjs` (see the pptx skill for tooling, validation and rendering commands). Read that skill's gotchas first.
+The user's chosen workflow (2026-10-19):
+
+1. **Draft and revise in a Slides artifact.** When the Artifact tool offers the Slides type, build the deck there (quickstart `intent: "slides"`, then fill it). Every addition and change the user asks for is made in that artifact and republished to the same link; the user reviews it there and may also edit slides in the browser. Before changing a slide the user may have edited, work from the artifact's current version, never overwrite their edits.
+2. **Polish in PowerPoint.** Once the content is settled, the user downloads the .pptx from the artifact and fine-tunes it in PowerPoint. From then on the PowerPoint file is the master: PowerPoint edits do not flow back. If the user asks for content changes after downloading, remind them that a fresh download loses their PowerPoint tweaks.
+3. Keep one master at a time. Do not also maintain a local pptxgenjs build of the same deck.
+
+**Applying this style in the artifact format** (a restricted HTML subset on a 1920 × 1080 px canvas; 1 in = 192 px, 1 pt ≈ 2.67 px):
+- Fonts must be web fonts: **Carlito** (metric-compatible with Calibri) for text, **Inconsolata** for mono text. Say so once.
+- Geometry in px: side margins 86, title `<h2>` pinned at top 80, 75 px; green rule pinned at top 182, 6 px high; content from about 230; footer hairline at 998 and footer text at 1010, 27 px mono.
+- Sizes: bullets 43 px, sub-bullets 37 px, tables 35–37 px, references 27 px mono, plot titles 35 px bold, tick labels 29 px.
+- Bullets: `<p>` lines starting with `■ ` (top level) and `– ` with 48 px left padding (sub-bullets), since nested lists are not allowed.
+- Tables: one font per table, so use Carlito with `font-variant-numeric:tabular-nums`; 4 px ink rules on the table's top and bottom; cells cannot be bold, so mark the row the text refers to with the `fill` tone (E6EAE7) and say so.
+- Plots: inline `<svg>` (frame, grid, data lines, key swatches) with all labels as pinned `<p>` elements over it inside a `position:relative` host; keep series distinct by line style as well as color.
+- Flowcharts: painted `<div>` boxes and `<x-connector>` arrows (green 7 px main path; muted dashed side branch).
+
+**Fallback (no Slides artifact type available, or the user asks for a file directly):** build the `.pptx` with `pptxgenjs` as below.
+
+## Output and process (direct .pptx)
+
+1. Output is a `.pptx`, built with `pptxgenjs` (see the pptx skill for tooling, validation and rendering commands). Read that skill's gotchas first.
 2. Collect before building: audience (specialists, or mixed), talk title, organization, event, date. Author defaults to **Vivek Sharma**. If the user is not around to answer, assume specialists, use placeholders `Organization name` and `Event name`, and say so in one line.
 3. Build from the reference script at the bottom of this file. Copy it, replace the content blocks, keep the tokens, masters and helpers unchanged.
 4. Validate (`validate.py`), render to images, and inspect every slide against the checklist near the end.
