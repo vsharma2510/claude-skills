@@ -21,7 +21,8 @@ The user's chosen workflow (2026-10-19):
 - Sizes: bullets 43 px, sub-bullets 37 px, tables 35–37 px, references 27 px mono, plot titles 35 px bold, tick labels 29 px.
 - Bullets: `<p>` lines starting with `■ ` (top level) and `– ` with 48 px left padding (sub-bullets), since nested lists are not allowed.
 - Tables: one font per table, so use Carlito with `font-variant-numeric:tabular-nums`; 4 px ink rules on the table's top and bottom; cells cannot be bold, so mark the row the text refers to with the `fill` tone (E6EAE7) and say so.
-- Plots: inline `<svg>` (frame, grid, data lines, key swatches) with all labels as pinned `<p>` elements over it inside a `position:relative` host; keep series distinct by line style as well as color.
+- Plots: make them with matplotlib using the **personal-plot-style** skill (`slide` context), so the key, ticks, value labels and annotations are inside one figure. Size the figure to the slide's content area (about 9.1 × 3.4 in for a full-width plot), save PNG at 200 dpi, upload it as an artifact asset and place it with `<img src="/_blob/…" alt="…the plotted numbers…" style="width:1748px;height:…;object-fit:contain">`. Keep the plotting script and its numbers in the project repo (with the source of each number) so figures can be regenerated; the PNGs go next to the slides. Do not build charts as inline `<svg>` with text overlays: SVG text cannot use the deck fonts, so every label becomes a separate text box.
+- References, notes and the takeaway bullet stay as slide text under the image, not inside the figure.
 - Flowcharts: painted `<div>` boxes and `<x-connector>` arrows (green 7 px main path; muted dashed side branch).
 
 **Fallback (no Slides artifact type available, or the user asks for a file directly):** build the `.pptx` with `pptxgenjs` as below.
