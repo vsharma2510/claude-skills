@@ -80,8 +80,9 @@ Booktabs style: ink rule 1.5 pt above the header and below the last row, 1 pt in
 - Full ink box around the plot area, inward ticks where the renderer allows, light grid on both axes.
 - Titles centered, bold, 13 pt. Axis titles and tick labels large enough to read from the back of a room (12 and 11 pt minimum).
 - Set the plot area explicitly with `layout: { x: 0.115, y: 0.2, w: 0.865, h: 0.5 }` so the chart does not collapse around its labels. Plots take as much of the slide as possible.
-- Label series directly with a small key inside the plot (line swatch plus word), never a legend beside the plot.
-- Data lines 2 pt (the key swatches 1.75 pt), matching the 1.8 pt lines of personal-plot-style slide images. A second series differs in line style as well as color (dashed fit over solid data).
+- **Every piece of text that belongs to a plot is built into the chart or figure, never added as text boxes or shapes on the slide.** That covers the title, axis titles, tick labels, value labels, annotations and the key. A native chart uses its own legend; a matplotlib figure uses `ps.legend` and its own text. Text boxes and swatch shapes drawn over a chart come apart from it when the user moves or resizes the chart in PowerPoint, and they use none of the chart's fonts or layout. References, notes and takeaway bullets are not plot text and stay as slide text beside or under the plot.
+- Identify series with a small key inside the plot area, never a legend beside the plot. For a native chart this is the built-in legend (`showLegend: true`), moved inside the plot area by a manual layout with overlay on (the script's `legendInside` does this after writing). A single-series chart needs no key.
+- Data lines 2 pt, matching the 1.8 pt lines of personal-plot-style slide images. A second series differs in line style as well as color (dashed fit over solid data).
 - pptxgenjs applies one dash style to all series. Do not pass `lineDash` as an array; set per-series dashes by editing the chart XML after writing (the script does this).
 - Label every histogram bin sparsely using space strings for hidden labels; `catAxisLabelFrequency` is not honored everywhere.
 
@@ -123,7 +124,7 @@ When plots follow a flow, split the text into one note per plot and place each n
 
 ## QA checklist
 
-Render every slide and check: title and rule at the same position on every content slide; no overflow in mono columns; no value, ±, or unit split across lines; references sit under their figure and not in the footer; every measured value has an uncertainty; plot labels readable; direct key does not cover data; flowchart labels fit their boxes; footer has name and date left, number right; no leftover placeholder text unless the user was told it is a placeholder.
+Render every slide and check: title and rule at the same position on every content slide; no overflow in mono columns; no value, ±, or unit split across lines; references sit under their figure and not in the footer; every measured value has an uncertainty; plot labels readable; no text box or shape sits on top of a plot (key, labels and annotations are part of the chart); key does not cover data; flowchart labels fit their boxes; footer has name and date left, number right; no leftover placeholder text unless the user was told it is a placeholder.
 
 ## Running in Claude Code or on a local machine
 
@@ -312,7 +313,7 @@ function bullets(slide, items, o) {
     valGridLine: { color: T.rule, size: 0.75 }, catGridLine: { color: T.rule, size: 0.75 },
     showTitle: true, titleFontFace: F.text, titleFontSize: 13, titleColor: T.ink, titleBold: true,
     plotArea: { fill: { color: T.bg }, border: { pt: 1.5, color: T.ink } },
-    showLegend: false, chartArea: { fill: { color: T.bg } },
+    showLegend: false, legendFontFace: F.mono, legendFontSize: 11, legendColor: T.ink, chartArea: { fill: { color: T.bg } },
     layout: { x: 0.115, y: 0.2, w: 0.865, h: 0.5 },
   };
   s.addChart(pres.charts.SCATTER, [
@@ -321,15 +322,10 @@ function bullets(slide, items, o) {
     { name: "fit", values: xs.map((x) => 1.5 + 7.75 * x) },
   ], Object.assign({}, axisCommon, {
     x: colX, y: rowY[0], w: colW, h: figH, chartColors: [T.teal, T.coral], lineSize: 2, lineDataSymbol: "none",
+    showLegend: true, legendPos: "t", // the chart's own key; legendInside() moves it into the plot area
     title: "Track frequency", catAxisTitle: "t (ms)", valAxisTitle: "f − f0 (MHz)",
     catAxisMinVal: 0, catAxisMaxVal: 2, catAxisMajorUnit: 0.5, valAxisMinVal: 0, valAxisMaxVal: 20, valAxisMajorUnit: 5,
   }));
-  // direct key inside the plot
-  const kx = colX + 0.115 * colW + 0.12, ky = rowY[0] + 0.2 * figH + 0.06;
-  [["data", T.teal, "solid", 0], ["fit", T.coral, "dash", 1]].forEach(([n, c, d, i]) => {
-    s.addShape(pres.shapes.LINE, { x: kx, y: ky + 0.1 + i * 0.2, w: 0.3, h: 0, line: { color: c, width: 1.75, dashType: d } });
-    txt(s, n, { x: kx + 0.38, y: ky + i * 0.2, w: 0.6, h: 0.2, fontFace: F.mono, fontSize: 11, valign: "middle" });
-  });
   ref(s, ["[1] Placeholder simulation, 2026"], colX, rowY[0] + figH + 0.02, colW);
 
   // plot B: residual histogram
@@ -364,10 +360,32 @@ async function dashSeries(file, serIdx, dash) {
   fs.writeFileSync(file, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
 }
 
+// The key is the chart's own legend. pptxgenjs can only put it beside the plot, so give it a manual layout
+// inside the plot area (fractions of the chart frame) and turn overlay on so it does not shrink the plot.
+async function legendInside(file, box = { x: 0.14, y: 0.22, w: 0.3, h: 0.16 }) {
+  const zip = await JSZip.loadAsync(fs.readFileSync(file));
+  const layout = `<c:layout><c:manualLayout><c:xMode val="edge"/><c:yMode val="edge"/>` +
+    `<c:x val="${box.x}"/><c:y val="${box.y}"/><c:w val="${box.w}"/><c:h val="${box.h}"/></c:manualLayout></c:layout>`;
+  for (const n of Object.keys(zip.files).filter((n) => /^ppt\/charts\/chart\d+\.xml$/.test(n))) {
+    let xml = await zip.file(n).async("string");
+    if (!xml.includes("<c:legend>")) continue;
+    xml = xml.replace(/<c:legend>([\s\S]*?)<\/c:legend>/, (m, body) => {
+      body = body.replace(/<c:layout\s*\/>|<c:layout>[\s\S]*?<\/c:layout>/, "");          // drop any existing layout
+      body = body.replace(/(<c:legendPos val="[^"]*"\/>)/, `$1${layout}`);                   // schema: legendPos, layout, overlay
+      body = /<c:overlay /.test(body) ? body.replace(/<c:overlay val="[^"]*"\/>/, '<c:overlay val="1"/>')
+                                       : body.replace(layout, layout + '<c:overlay val="1"/>');
+      return `<c:legend>${body}</c:legend>`;
+    });
+    zip.file(n, xml);
+  }
+  fs.writeFileSync(file, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
+}
+
 (async () => {
   const out = process.argv[2] || "sample.pptx";
   await pres.writeFile({ fileName: out });
   await dashSeries(out, 1, "dash"); // second series (the fit) dashed
+  await legendInside(out);          // built-in key into the plot area
   await applyTheme(out, THEME);
   console.log("wrote", out);
 })();
